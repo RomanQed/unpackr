@@ -1,2 +1,4 @@
 rootProject.name = 'unpackr'
+include 'asm'
+include 'reflect'
 

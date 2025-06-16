@@ -3,7 +3,6 @@ import java.text.SimpleDateFormat
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
     id 'signing'
 }
 
@@ -16,8 +15,8 @@ java {
 }
 
 group = 'com.github.romanqed'
-archivesBaseName = 'unpackr'
-version = System.getenv('UNPACKR_VERSION') ?: '1.0.0'
+archivesBaseName = 'unpackr-reflect'
+version = System.getenv('UNPACKR_REFLECT_VERSION') ?: '1.0.0'
 
 repositories {
     mavenCentral()
@@ -28,7 +27,8 @@ dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.0'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.0'
     // Dependencies
-    api group: 'com.github.romanqed', name: 'jfunc', version: '1.1.4'
+    api project(':')
+    api group: 'com.github.romanqed', name: 'jeflect-cloner', version: '1.0.0'
 }
 
 test {
@@ -48,7 +48,7 @@ jar {
                 'Build-Date': new SimpleDateFormat("yyyy-MM-dd").format(date),
                 'Build-Time': new SimpleDateFormat("HH:mm:ss.SSSZ").format(date),
                 'Built-By': 'Roman Bakaldin',
-                'Bundle-Name': 'Unpackr',
+                'Bundle-Name': 'Unpackr Reflect',
                 'Bundle-Version': archiveVersion,
                 'Bundle-SymbolicName': archivesBaseName,
                 'Implementation-Title': archivesBaseName,
@@ -112,15 +112,13 @@ publishing {
             }
         }
     }
-}
-
-nexusPublishing {
     repositories {
-        sonatype {
-            username = centralUsername
-            password = centralPassword
-            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+        maven {
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            credentials {
+                username System.getenv('SONATYPE_USERNAME')
+                password System.getenv('SONATYPE_PASSWORD')
+            }
         }
     }
 }
