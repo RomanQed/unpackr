@@ -76,7 +76,8 @@ publishing {
             // Configure pom
             pom {
                 name.set(archivesBaseName)
-                description.set('TODO.')
+                description.set('Lightweight library for dynamically invoking methods ' +
+                        'or accessing fields using structured data.')
                 url.set('https://github.com/RomanQed/unpackr')
 
                 organization {

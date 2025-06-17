@@ -79,7 +79,7 @@ publishing {
             // Configure pom
             pom {
                 name.set(archivesBaseName)
-                description.set('TODO.')
+                description.set('Asm-based implementation of unpackr.')
                 url.set('https://github.com/RomanQed/unpackr')
 
                 organization {
