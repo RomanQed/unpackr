@@ -28,10 +28,12 @@ import java.util.Objects;
  * var unpacker = new ReflectUnpacker(new ReflectCloner());
  * var method = Target.class.getMethod("handle", Map.class, Map.class);
  * var rqPropsAccess = MemberAccess.of()
+ *           .of(Ctx.class)
  *           .of(Ctx.class.getMethod("getRq"))
  *           .of(Rq.class.getMethod("getRqProps"))
  *           .build();
  * var rpPropsAccess = MemberAccess.of()
+ *           .of(Ctx.class)
  *           .of(Ctx.class.getMethod("getRp"))
  *           .of(Rp.class.getMethod("getRpProps"))
  *           .build();

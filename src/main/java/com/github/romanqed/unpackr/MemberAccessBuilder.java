@@ -39,6 +39,7 @@ import java.util.Objects;
  * <pre>{@code
  *
  * var rqParamAccess = MemberAccess.of()
+ *     .of(Ctx.class)
  *     .of(Ctx.class.getMethod("getRq"))
  *     .of(Rq.class.getMethod("getRqProps"))
  *     .of(Map.class.getMethod("get", Object.class), "rqParam1")
@@ -50,6 +51,7 @@ import java.util.Objects;
  * <pre>{@code
  *
  * var rpParamAccess = MemberAccess.of()
+ *     .of(Ctx.class)
  *     .of(Ctx.class.getMethod("getRp"))
  *     .of(Rp.class.getMethod("getRpProps"))
  *     .of(Map.class.getMethod("get", Object.class), "rpParam1")
