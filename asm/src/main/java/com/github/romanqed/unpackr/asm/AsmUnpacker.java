@@ -33,7 +33,7 @@ import java.util.function.Consumer;
  * The goal is to invoke a method that accepts the results of those nested calls.
  *
  * <pre>{@code
- * var unpacker = new AsmUnpacker(new DefineLoader());
+ * var unpacker = new AsmUnpacker(new DefineClassLoader());
  * var method = Target.class.getMethod("handle", Map.class, Map.class);
  * var rqPropsAccess = MemberAccess.of()
  *           .of(Ctx.class)

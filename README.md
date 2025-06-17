@@ -87,7 +87,7 @@ interface Handler {
 You can create an unpacker using the ASM implementation like this:
 
 ```java
-var unpacker = new AsmUnpacker(new DefineLoader());
+var unpacker = new AsmUnpacker(new DefineClassLoader());
 var first = MemberAccess.of()
         .of(Ctx.class)
         .of(Ctx.class.getMethod("getRq"))
