@@ -200,6 +200,7 @@ public final class MemberAccessBuilder {
      */
     public MemberAccess[] build() {
         try {
+            checkLast();
             return accesses.toArray(new MemberAccess[0]);
         } finally {
             reset();
