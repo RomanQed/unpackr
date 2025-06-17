@@ -13,7 +13,7 @@ public final class MethodAccess implements MemberAccess {
     /**
      * Constructs a new {@code MethodAccess} with the specified method and its arguments.
      *
-     * @param method the method to wrap
+     * @param method    the method to wrap
      * @param arguments the arguments for method invocation
      */
     public MethodAccess(Method method, Object[] arguments) {
@@ -23,6 +23,7 @@ public final class MethodAccess implements MemberAccess {
 
     /**
      * Returns a clone of the arguments used for invoking the method.
+     *
      * @return a copy of the arguments array, or {@code null} if none
      */
     public Object[] arguments() {
@@ -47,13 +48,13 @@ public final class MethodAccess implements MemberAccess {
         var that = (MethodAccess) object;
 
         if (!method.equals(that.method)) return false;
-        return Arrays.deepEquals(arguments, that.arguments);
+        return Arrays.equals(arguments, that.arguments);
     }
 
     @Override
     public int hashCode() {
         int result = method.hashCode();
-        result = 31 * result + Arrays.deepHashCode(arguments);
+        result = 31 * result + Arrays.hashCode(arguments);
         return result;
     }
 }
