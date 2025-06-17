@@ -167,7 +167,11 @@ public final class MemberAccessBuilder {
                     "The length of the array of arguments does not match the number of method parameters"
             );
         }
-        last = method.getReturnType();
+        if (Modifier.isStatic(method.getModifiers())) {
+            last = method.getParameterTypes()[0];
+        } else {
+            last = method.getReturnType();
+        }
         accesses.add(new MethodAccess(method, arguments));
         return this;
     }
