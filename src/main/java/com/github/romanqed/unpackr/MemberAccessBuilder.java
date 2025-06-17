@@ -1,7 +1,6 @@
 package com.github.romanqed.unpackr;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -75,12 +74,33 @@ public final class MemberAccessBuilder {
         this.accesses = new ArrayList<>();
     }
 
-    private void checkMember(Member member) {
-        Objects.requireNonNull(member);
+    private void checkField(Field field) {
+        Objects.requireNonNull(field);
         if (last == null) {
             return;
         }
-        if (last != member.getDeclaringClass()) {
+        if (last != field.getDeclaringClass()) {
+            throw new IllegalArgumentException("Declaring class of member must be " + last.getSimpleName());
+        }
+    }
+
+    private void checkMethod(Method method) {
+        Objects.requireNonNull(method);
+        if (last == null) {
+            return;
+        }
+        if (Modifier.isStatic(method.getModifiers())) {
+            var parameters = method.getParameterTypes();
+            if (parameters.length == 0) {
+                throw new IllegalArgumentException("Static method must have at least 1 parameter");
+            }
+            var type = parameters[0];
+            if (!type.isAssignableFrom(last)) {
+                throw new IllegalArgumentException(
+                        "First parameter of static method must be superclass or interface of previous type"
+                );
+            }
+        } else if (last != method.getDeclaringClass()) {
             throw new IllegalArgumentException("Declaring class of member must be " + last.getSimpleName());
         }
     }
@@ -95,7 +115,7 @@ public final class MemberAccessBuilder {
      * @throws IllegalArgumentException if the field is static or does not belong to the expected class
      */
     public MemberAccessBuilder of(Field field) {
-        checkMember(field);
+        checkField(field);
         if (Modifier.isStatic(field.getModifiers())) {
             throw new IllegalArgumentException("Fields must be non-static");
         }
@@ -116,7 +136,7 @@ public final class MemberAccessBuilder {
      *                                  or the method does not belong to the expected class
      */
     public MemberAccessBuilder of(Method method, Object... arguments) {
-        checkMember(method);
+        checkMethod(method);
         if (arguments != null && arguments.length != method.getParameterCount()) {
             throw new IllegalArgumentException(
                     "The length of the array of arguments does not match the number of method parameters"
