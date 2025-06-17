@@ -16,6 +16,42 @@ import java.lang.reflect.Modifier;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+/**
+ * An {@link Unpacker} implementation that generates unpacking logic using runtime bytecode generation
+ * via the ASM library.
+ * <p>
+ * This class dynamically creates and defines a new implementation of the {@link Function2} interface,
+ * where the {@code apply} method is compiled into efficient bytecode to invoke the specified {@code target}
+ * method with parameters extracted from the given {@link MemberAccess} chains.
+ * <p>
+ * This approach allows the unpacking logic to be inlined and optimized by the JVM at runtime,
+ * avoiding the overhead of reflection.
+ *
+ * <h3>Usage</h3>
+ * <pre>{@code
+ * var unpacker = new AsmUnpacker(new DefineLoader());
+ * var method = Handler.class.getMethod("handle", String.class, Integer.class);
+ * MemberAccess[][] accesses = {
+ *     MemberAccess.of().of(SomeType.class.getMethod("getName")).build(),
+ *     MemberAccess.of().of(SomeType.class.getMethod("getId")).build()
+ * };
+ * Function2<Object, SomeType, Object> invoker = unpacker.unpack(SomeType.class, method, accesses);
+ * }</pre>
+ *
+ * <p>
+ * Internally, this class:
+ * <ul>
+ *     <li>Generates a class that implements {@code Function2<Object, T, Object>}</li>
+ *     <li>Generates bytecode that unpacks method parameters from the input object {@code T}
+ *         using the provided {@link MemberAccess} chains</li>
+ *     <li>Invokes the target method with these extracted arguments</li>
+ * </ul>
+ *
+ * @see com.github.romanqed.unpackr.MemberAccess
+ * @see com.github.romanqed.unpackr.MemberAccessBuilder
+ * @see com.github.romanqed.unpackr.asm.NodeVisitor
+ * @see com.github.romanqed.jeflect.loader.ObjectFactory
+ */
 @SuppressWarnings("rawtypes")
 public final class AsmUnpacker implements Unpacker {
     private static final String METHOD_NAME = "invoke";
@@ -24,10 +60,21 @@ public final class AsmUnpacker implements Unpacker {
     private static final String FUNCTION2 = Type.getInternalName(Function2.class);
     private final ObjectFactory<Function2> factory;
 
+    /**
+     * Constructs a new {@code AsmUnpacker} with a custom {@link ObjectFactory}
+     * for defining generated unpacker classes.
+     *
+     * @param factory the factory used to define generated classes, must not be {@code null}
+     */
     public AsmUnpacker(ObjectFactory<Function2> factory) {
         this.factory = Objects.requireNonNull(factory);
     }
 
+    /**
+     * Constructs a new {@code AsmUnpacker} using the specified {@link DefineLoader} to define generated classes.
+     *
+     * @param loader the loader to define generated classes with
+     */
     public AsmUnpacker(DefineLoader loader) {
         this.factory = new DefineObjectFactory<>(loader);
     }
