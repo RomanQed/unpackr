@@ -1,4 +1,4 @@
-# unpackr
+# unpackr [![unpackr](https://img.shields.io/maven-central/v/com.github.romanqed/unpackr?color=blue)](https://repo1.maven.org/maven2/com/github/romanqed/unpackr/)
 
 **unpackr** is a lightweight Java library for dynamically invoking methods or accessing fields using structured data, 
 such as DTOs or composite contexts. 
@@ -27,7 +27,7 @@ To install it, you will need:
 
 ```Groovy
 dependencies {
-    implementation group: 'com.github.romanqed', name: 'unpackr', version: '1.0.0'
+    implementation group: 'com.github.romanqed', name: 'unpackr', version: '1.0.1'
     implementation group: 'com.github.romanqed', name: 'unpackr-asm', version: '1.0.0'
     // OR
     implementation group: 'com.github.romanqed', name: 'unpackr-reflect', version: '1.0.0'
@@ -41,7 +41,7 @@ dependencies {
     <dependency>
         <groupId>com.github.romanqed</groupId>
         <artifactId>unpackr</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </dependency>
     <dependency>
         <groupId>com.github.romanqed</groupId>
