@@ -27,30 +27,31 @@ import java.util.function.Consumer;
  * This approach allows the unpacking logic to be inlined and optimized by the JVM at runtime,
  * avoiding the overhead of reflection.
  *
- * <h3>Usage</h3>
+ * <h3>Usage Example</h3>
+ * Suppose we have a class {@code Ctx} with methods {@code getRq()} and {@code getRp()},
+ * and their return types have methods {@code getRqProps()} and {@code getRpProps()} respectively.
+ * The goal is to invoke a method that accepts the results of those nested calls.
+ *
  * <pre>{@code
  * var unpacker = new AsmUnpacker(new DefineLoader());
- * var method = Handler.class.getMethod("handle", String.class, Integer.class);
- * MemberAccess[][] accesses = {
- *     MemberAccess.of().of(SomeType.class.getMethod("getName")).build(),
- *     MemberAccess.of().of(SomeType.class.getMethod("getId")).build()
- * };
- * Function2<Object, SomeType, Object> invoker = unpacker.unpack(SomeType.class, method, accesses);
+ * var method = Target.class.getMethod("handle", Map.class, Map.class);
+ * var rqPropsAccess = MemberAccess.of()
+ *           .of(Ctx.class.getMethod("getRq"))
+ *           .of(Rq.class.getMethod("getRqProps"))
+ *           .build();
+ * var rpPropsAccess = MemberAccess.of()
+ *           .of(Ctx.class.getMethod("getRp"))
+ *           .of(Rp.class.getMethod("getRpProps"))
+ *           .build();
+ * var function = unpacker.unpack(Ctx.class, method, rqPropsAccess, rpPropsAccess);
  * }</pre>
- *
  * <p>
- * Internally, this class:
- * <ul>
- *     <li>Generates a class that implements {@code Function2<Object, T, Object>}</li>
- *     <li>Generates bytecode that unpacks method parameters from the input object {@code T}
- *         using the provided {@link MemberAccess} chains</li>
- *     <li>Invokes the target method with these extracted arguments</li>
- * </ul>
+ * This function can now be used to dynamically extract data from a {@code Ctx} instance
+ * and pass it to the target method.
  *
+ * @see com.github.romanqed.unpackr.Unpacker
  * @see com.github.romanqed.unpackr.MemberAccess
  * @see com.github.romanqed.unpackr.MemberAccessBuilder
- * @see com.github.romanqed.unpackr.asm.NodeVisitor
- * @see com.github.romanqed.jeflect.loader.ObjectFactory
  */
 @SuppressWarnings("rawtypes")
 public final class AsmUnpacker implements Unpacker {

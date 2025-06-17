@@ -3,8 +3,8 @@ import java.text.SimpleDateFormat
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
     id 'signing'
+    id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
 }
 
 java {

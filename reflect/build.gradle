@@ -26,8 +26,10 @@ dependencies {
     // Tests
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.0'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.0'
+    testImplementation project(':')
     // Dependencies
-    api project(':')
+    compileOnly project(':')
+    api group: 'com.github.romanqed', name: 'jfunc', version: '1.1.4'
     api group: 'com.github.romanqed', name: 'jeflect-cloner', version: '1.0.0'
 }
 
@@ -109,15 +111,6 @@ publishing {
                         email.set('gbakaldin@gmail.com')
                     }
                 }
-            }
-        }
-    }
-    repositories {
-        maven {
-            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-            credentials {
-                username System.getenv('SONATYPE_USERNAME')
-                password System.getenv('SONATYPE_PASSWORD')
             }
         }
     }
