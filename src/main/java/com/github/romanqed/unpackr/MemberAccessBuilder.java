@@ -76,9 +76,6 @@ public final class MemberAccessBuilder {
 
     private void checkField(Field field) {
         Objects.requireNonNull(field);
-        if (last == null) {
-            return;
-        }
         if (last != field.getDeclaringClass()) {
             throw new IllegalArgumentException("Declaring class of member must be " + last.getSimpleName());
         }
@@ -86,8 +83,8 @@ public final class MemberAccessBuilder {
 
     private void checkMethod(Method method) {
         Objects.requireNonNull(method);
-        if (last == null) {
-            return;
+        if (method.getReturnType() == void.class) {
+            throw new IllegalArgumentException("Method must return non-void");
         }
         if (Modifier.isStatic(method.getModifiers())) {
             var parameters = method.getParameterTypes();
@@ -105,6 +102,30 @@ public final class MemberAccessBuilder {
         }
     }
 
+    private void checkLast() {
+        if (last == null) {
+            throw new IllegalStateException("Root type must be specified");
+        }
+    }
+
+    /**
+     * Sets a root type of access chain.
+     *
+     * @param type the specified type to be set
+     * @return this builder instance for method chaining
+     */
+    public MemberAccessBuilder of(Class<?> type) {
+        Objects.requireNonNull(type);
+        if (type.isPrimitive()) {
+            throw new IllegalArgumentException("Root type must be non-primitive");
+        }
+        if (last != null) {
+            throw new IllegalArgumentException("Root type of access chain already specified");
+        }
+        this.last = type;
+        return this;
+    }
+
     /**
      * Adds a non-static {@link Field} to the access chain.
      * The field's type becomes the expected declaring class for the next member.
@@ -115,6 +136,7 @@ public final class MemberAccessBuilder {
      * @throws IllegalArgumentException if the field is static or does not belong to the expected class
      */
     public MemberAccessBuilder of(Field field) {
+        checkLast();
         checkField(field);
         if (Modifier.isStatic(field.getModifiers())) {
             throw new IllegalArgumentException("Fields must be non-static");
@@ -136,6 +158,7 @@ public final class MemberAccessBuilder {
      *                                  or the method does not belong to the expected class
      */
     public MemberAccessBuilder of(Method method, Object... arguments) {
+        checkLast();
         checkMethod(method);
         if (arguments != null && arguments.length != method.getParameterCount()) {
             throw new IllegalArgumentException(
