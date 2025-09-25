@@ -52,7 +52,7 @@ public final class ReflectUnpackerTest {
                 .of(Ctx.class.getMethod("getC", Ctx.class))
                 .of(C.class.getMethod("getStrVal"))
                 .build();
-        var unpacker = new ReflectUnpacker(new NoopReflectCloner());
+        var unpacker = new ReflectUnpacker();
         var target = Handler.class.getMethod(
                 "handle", Ctx.class, String.class, String.class, String.class, String.class, String.class
         );
@@ -91,7 +91,7 @@ public final class ReflectUnpackerTest {
                 .of(Ctx.class.getMethod("getC", Ctx.class))
                 .of(C.class.getMethod("getStrVal"))
                 .build();
-        var unpacker = new ReflectUnpacker(new NoopReflectCloner());
+        var unpacker = new ReflectUnpacker();
         var target = ReflectUnpackerTest.class.getMethod(
                 "handle", Ctx.class, String.class, String.class, String.class, String.class, String.class
         );

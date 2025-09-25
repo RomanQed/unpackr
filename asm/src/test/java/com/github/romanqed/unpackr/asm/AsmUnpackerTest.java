@@ -52,7 +52,7 @@ public final class AsmUnpackerTest {
                 .of(Ctx.class.getMethod("getC", Ctx.class))
                 .of(C.class.getMethod("getStrVal"))
                 .build();
-        var unpacker = new AsmUnpacker(new DefineClassLoader());
+        var unpacker = new AsmUnpacker();
         var target = AsmUnpackerTest.class.getMethod(
                 "handle", Ctx.class, String.class, String.class, String.class, String.class, String.class
         );
@@ -91,7 +91,7 @@ public final class AsmUnpackerTest {
                 .of(Ctx.class.getMethod("getC", Ctx.class))
                 .of(C.class.getMethod("getStrVal"))
                 .build();
-        var unpacker = new AsmUnpacker(new DefineClassLoader());
+        var unpacker = new AsmUnpacker();
         var target = Handler.class.getMethod(
                 "handle", Ctx.class, String.class, String.class, String.class, String.class, String.class
         );

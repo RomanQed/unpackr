@@ -4,7 +4,6 @@ import com.github.romanqed.jeflect.loader.DefineClassLoader;
 import com.github.romanqed.jeflect.loader.DefineLoader;
 import com.github.romanqed.jeflect.loader.DefineObjectFactory;
 import com.github.romanqed.jeflect.loader.ObjectFactory;
-import com.github.romanqed.jfunc.Function2;
 import com.github.romanqed.unpackr.Caller;
 import com.github.romanqed.unpackr.MemberAccess;
 import com.github.romanqed.unpackr.Unpacker;
@@ -22,7 +21,7 @@ import java.util.function.Consumer;
  * An {@link Unpacker} implementation that generates unpacking logic using runtime bytecode generation
  * via the ASM library.
  * <p>
- * This class dynamically creates and defines a new implementation of the {@link Function2} interface,
+ * This class dynamically creates and defines a new implementation of the {@link Caller} interface,
  * where the {@code apply} method is compiled into efficient bytecode to invoke the specified {@code target}
  * method with parameters extracted from the given {@link MemberAccess} chains.
  * <p>
