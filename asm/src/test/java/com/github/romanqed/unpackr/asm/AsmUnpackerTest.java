@@ -1,6 +1,5 @@
 package com.github.romanqed.unpackr.asm;
 
-import com.github.romanqed.jeflect.loader.DefineClassLoader;
 import com.github.romanqed.unpackr.MemberAccess;
 import org.junit.jupiter.api.Test;
 

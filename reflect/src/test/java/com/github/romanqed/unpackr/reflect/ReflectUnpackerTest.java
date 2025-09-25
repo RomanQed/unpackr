@@ -1,6 +1,5 @@
 package com.github.romanqed.unpackr.reflect;
 
-import com.github.romanqed.jeflect.cloner.NoopReflectCloner;
 import com.github.romanqed.unpackr.MemberAccess;
 import org.junit.jupiter.api.Test;
 
