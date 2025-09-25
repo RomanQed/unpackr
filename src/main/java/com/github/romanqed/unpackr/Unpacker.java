@@ -1,7 +1,5 @@
 package com.github.romanqed.unpackr;
 
-import com.github.romanqed.jfunc.Function2;
-
 import java.lang.reflect.Method;
 
 /**
@@ -16,8 +14,7 @@ public interface Unpacker {
      * @param packed   the class of the packed input object
      * @param target   the target method to invoke
      * @param accesses the chains of member access to extract method arguments
-     * @param <T>      the type of the packed object
      * @return a function that unpacks and calls the method
      */
-    <T> Function2<Object, T, Object> unpack(Class<T> packed, Method target, MemberAccess[]... accesses);
+    Caller unpack(Class<?> packed, Method target, MemberAccess[]... accesses);
 }

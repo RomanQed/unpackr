@@ -1,22 +1,18 @@
 package com.github.romanqed.unpackr.reflect;
 
-import com.github.romanqed.jfunc.Function1;
-
 import java.lang.reflect.Field;
 
-@SuppressWarnings("rawtypes")
-final class ChainedFieldAccessor implements Function1 {
-    final Function1 previous;
+final class ChainedFieldAccessor implements Accessor {
+    final Accessor previous;
     final Field field;
 
-    ChainedFieldAccessor(Function1 previous, Field field) {
+    ChainedFieldAccessor(Accessor previous, Field field) {
         this.previous = previous;
         this.field = field;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public Object invoke(Object o) throws Throwable {
-        return field.get(previous.invoke(o));
+    public Object call(Object o) throws Throwable {
+        return field.get(previous.call(o));
     }
 }

@@ -1,9 +1,11 @@
 package com.github.romanqed.unpackr.asm;
 
+import com.github.romanqed.jeflect.loader.DefineClassLoader;
 import com.github.romanqed.jeflect.loader.DefineLoader;
 import com.github.romanqed.jeflect.loader.DefineObjectFactory;
 import com.github.romanqed.jeflect.loader.ObjectFactory;
 import com.github.romanqed.jfunc.Function2;
+import com.github.romanqed.unpackr.Caller;
 import com.github.romanqed.unpackr.MemberAccess;
 import com.github.romanqed.unpackr.Unpacker;
 import org.objectweb.asm.ClassWriter;
@@ -45,23 +47,22 @@ import java.util.function.Consumer;
  *           .of(Ctx.class.getMethod("getRp"))
  *           .of(Rp.class.getMethod("getRpProps"))
  *           .build();
- * var function = unpacker.unpack(Ctx.class, method, rqPropsAccess, rpPropsAccess);
+ * var caller = unpacker.unpack(Ctx.class, method, rqPropsAccess, rpPropsAccess);
  * }</pre>
  * <p>
- * This function can now be used to dynamically extract data from a {@code Ctx} instance
+ * This caller can now be used to dynamically extract data from a {@code Ctx} instance
  * and pass it to the target method.
  *
  * @see com.github.romanqed.unpackr.Unpacker
  * @see com.github.romanqed.unpackr.MemberAccess
  * @see com.github.romanqed.unpackr.MemberAccessBuilder
  */
-@SuppressWarnings("rawtypes")
 public final class AsmUnpacker implements Unpacker {
-    private static final String METHOD_NAME = "invoke";
+    private static final String METHOD_NAME = "call";
     private static final String METHOD_DESCRIPTOR = "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
     private static final String THROWABLE = "java/lang/Throwable";
-    private static final String FUNCTION2 = Type.getInternalName(Function2.class);
-    private final ObjectFactory<Function2> factory;
+    private static final String CALLER = Type.getInternalName(Caller.class);
+    private final ObjectFactory<Caller> factory;
 
     /**
      * Constructs a new {@code AsmUnpacker} with a custom {@link ObjectFactory}
@@ -69,7 +70,7 @@ public final class AsmUnpacker implements Unpacker {
      *
      * @param factory the factory used to define generated classes, must not be {@code null}
      */
-    public AsmUnpacker(ObjectFactory<Function2> factory) {
+    public AsmUnpacker(ObjectFactory<Caller> factory) {
         this.factory = Objects.requireNonNull(factory);
     }
 
@@ -80,6 +81,13 @@ public final class AsmUnpacker implements Unpacker {
      */
     public AsmUnpacker(DefineLoader loader) {
         this.factory = new DefineObjectFactory<>(loader);
+    }
+
+    /**
+     * TODO
+     */
+    public AsmUnpacker() {
+        this.factory = new DefineObjectFactory<>(new DefineClassLoader());
     }
 
     private static Consumer<MethodVisitor> buildRootLoader(LocalVariablesSorter visitor, Class<?> packed, int size) {
@@ -137,7 +145,7 @@ public final class AsmUnpacker implements Unpacker {
                                        Class<?> packed,
                                        Method target,
                                        MemberAccess[][] accesses) {
-        // Build access tree
+        // Build the access tree
         var count = new int[1];
         var node = NodeUtil.of(accesses, count);
         var children = node.children;
@@ -188,7 +196,7 @@ public final class AsmUnpacker implements Unpacker {
                 name,
                 null,
                 AsmUtil.OBJECT_NAME,
-                new String[]{FUNCTION2}
+                new String[]{CALLER}
         );
         AsmUtil.createEmptyConstructor(writer);
         var visitor = writer.visitMethodWithLocals(
@@ -204,8 +212,7 @@ public final class AsmUnpacker implements Unpacker {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> Function2<Object, T, Object> unpack(Class<T> packed, Method target, MemberAccess[]... accesses) {
+    public Caller unpack(Class<?> packed, Method target, MemberAccess[]... accesses) {
         if (!Modifier.isPublic(target.getModifiers())) {
             throw new IllegalArgumentException("Target method must be public");
         }

@@ -1,7 +1,5 @@
 package com.github.romanqed.unpackr.reflect;
 
-import com.github.romanqed.jfunc.Function1;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -11,14 +9,14 @@ final class Accessors {
     private Accessors() {
     }
 
-    static Function1 of(Function1 previous, Field field) {
+    static Accessor of(Accessor previous, Field field) {
         if (previous == null) {
             return new FieldAccessor(field);
         }
         return new ChainedFieldAccessor(previous, field);
     }
 
-    static Function1 of(Function1 previous, Method method, Object[] arguments) {
+    static Accessor of(Accessor previous, Method method, Object[] arguments) {
         var isStatic = Modifier.isStatic(method.getModifiers());
         var isEmpty = arguments == null || arguments.length == 0;
         if (previous == null) {

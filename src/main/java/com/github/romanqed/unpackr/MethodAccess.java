@@ -53,8 +53,6 @@ public final class MethodAccess implements MemberAccess {
 
     @Override
     public int hashCode() {
-        int result = method.hashCode();
-        result = 31 * result + Arrays.hashCode(arguments);
-        return result;
+        return 31 * method.hashCode() + Arrays.hashCode(arguments);
     }
 }

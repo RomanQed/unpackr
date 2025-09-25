@@ -1,11 +1,8 @@
 package com.github.romanqed.unpackr.reflect;
 
-import com.github.romanqed.jfunc.Function1;
-
 import java.lang.reflect.Field;
 
-@SuppressWarnings("rawtypes")
-final class FieldAccessor implements Function1 {
+final class FieldAccessor implements Accessor {
     final Field field;
 
     FieldAccessor(Field field) {
@@ -13,7 +10,7 @@ final class FieldAccessor implements Function1 {
     }
 
     @Override
-    public Object invoke(Object o) throws Throwable {
+    public Object call(Object o) throws Throwable {
         return field.get(o);
     }
 }

@@ -1,22 +1,18 @@
 package com.github.romanqed.unpackr.reflect;
 
-import com.github.romanqed.jfunc.Function1;
-
 import java.lang.reflect.Method;
 
-@SuppressWarnings("rawtypes")
-final class ChainedVirtualEmptyMethodAccessor implements Function1 {
-    final Function1 previous;
+final class ChainedVirtualEmptyMethodAccessor implements Accessor {
+    final Accessor previous;
     final Method method;
 
-    ChainedVirtualEmptyMethodAccessor(Function1 previous, Method method) {
+    ChainedVirtualEmptyMethodAccessor(Accessor previous, Method method) {
         this.previous = previous;
         this.method = method;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public Object invoke(Object o) throws Throwable {
-        return method.invoke(previous.invoke(o), (Object[]) null);
+    public Object call(Object o) throws Throwable {
+        return method.invoke(previous.call(o), (Object[]) null);
     }
 }

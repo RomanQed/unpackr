@@ -1,11 +1,8 @@
 package com.github.romanqed.unpackr.reflect;
 
-import com.github.romanqed.jfunc.Function1;
-
 import java.lang.reflect.Method;
 
-@SuppressWarnings("rawtypes")
-final class StaticEmptyMethodAccessor implements Function1 {
+final class StaticEmptyMethodAccessor implements Accessor {
     final Method method;
 
     StaticEmptyMethodAccessor(Method method) {
@@ -13,7 +10,7 @@ final class StaticEmptyMethodAccessor implements Function1 {
     }
 
     @Override
-    public Object invoke(Object o) throws Throwable {
+    public Object call(Object o) throws Throwable {
         return method.invoke(null, o);
     }
 }

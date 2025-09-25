@@ -1,12 +1,8 @@
 package com.github.romanqed.unpackr.reflect;
 
+import com.github.romanqed.jeflect.cloner.NoopReflectCloner;
 import com.github.romanqed.jeflect.cloner.ReflectCloner;
-import com.github.romanqed.jfunc.Function1;
-import com.github.romanqed.jfunc.Function2;
-import com.github.romanqed.unpackr.FieldAccess;
-import com.github.romanqed.unpackr.MemberAccess;
-import com.github.romanqed.unpackr.MethodAccess;
-import com.github.romanqed.unpackr.Unpacker;
+import com.github.romanqed.unpackr.*;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -37,18 +33,17 @@ import java.util.Objects;
  *           .of(Ctx.class.getMethod("getRp"))
  *           .of(Rp.class.getMethod("getRpProps"))
  *           .build();
- * var function = unpacker.unpack(Ctx.class, method, rqPropsAccess, rpPropsAccess);
+ * var caller = unpacker.unpack(Ctx.class, method, rqPropsAccess, rpPropsAccess);
  * }</pre>
  *
  * <p>
- * This function can now be used to dynamically extract data from a {@code Ctx} instance and pass it
+ * This caller can now be used to dynamically extract data from a {@code Ctx} instance and pass it
  * to the target method via reflection.
  *
  * @see com.github.romanqed.unpackr.Unpacker
  * @see com.github.romanqed.unpackr.MemberAccess
  * @see com.github.romanqed.unpackr.MemberAccessBuilder
  */
-@SuppressWarnings("rawtypes")
 public final class ReflectUnpacker implements Unpacker {
     private final ReflectCloner cloner;
 
@@ -66,33 +61,42 @@ public final class ReflectUnpacker implements Unpacker {
         this.cloner = Objects.requireNonNull(cloner);
     }
 
-    private Function1 process(FieldAccess access, Function1 previous) {
+    /**
+     * TODO
+     */
+    public ReflectUnpacker() {
+        this.cloner = new NoopReflectCloner();
+    }
+
+    private Accessor process(FieldAccess access, Accessor previous) {
         var cloned = cloner.clone(access.member());
+        cloned.setAccessible(true);
         return Accessors.of(previous, cloned);
     }
 
-    private Function1 process(MethodAccess access, Function1 previous) {
+    private Accessor process(MethodAccess access, Accessor previous) {
         var cloned = cloner.clone(access.member());
+        cloned.setAccessible(true);
         return Accessors.of(previous, cloned, access.arguments());
     }
 
-    private Function1 process(MemberAccess access, Function1 previous) {
+    private Accessor process(MemberAccess access, Accessor previous) {
         if (access.getClass() == FieldAccess.class) {
             return process((FieldAccess) access, previous);
         }
         return process((MethodAccess) access, previous);
     }
 
-    private Function1 process(MemberAccess[] accesses) {
-        var ret = (Function1) null;
+    private Accessor process(MemberAccess[] accesses) {
+        var ret = (Accessor) null;
         for (var access : accesses) {
             ret = process(access, ret);
         }
         return ret;
     }
 
-    private Function1[] process(MemberAccess[][] accesses, Method target, Class<?> packed) {
-        var ret = new Function1[accesses.length];
+    private Accessor[] process(MemberAccess[][] accesses, Method target, Class<?> packed) {
+        var ret = new Accessor[accesses.length];
         var parameters = target.getParameterTypes();
         for (var i = 0; i < accesses.length; i++) {
             var access = accesses[i];
@@ -108,11 +112,10 @@ public final class ReflectUnpacker implements Unpacker {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> Function2<Object, T, Object> unpack(Class<T> packed, Method target, MemberAccess[]... accesses) {
+    public Caller unpack(Class<?> packed, Method target, MemberAccess[]... accesses) {
         var accessors = process(accesses, target, packed);
         var cloned = cloner.clone(target);
         cloned.setAccessible(true);
-        return new UnpackMethodInvoker(cloned, accessors);
+        return new UnpackMethodCaller(cloned, accessors);
     }
 }
