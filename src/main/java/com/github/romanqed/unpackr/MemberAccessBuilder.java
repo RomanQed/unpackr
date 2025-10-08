@@ -162,10 +162,13 @@ public final class MemberAccessBuilder {
     public MemberAccessBuilder of(Method method, Object... arguments) {
         checkLast();
         checkMethod(method);
-        if (arguments != null && arguments.length != method.getParameterCount()) {
-            throw new IllegalArgumentException(
-                    "The length of the array of arguments does not match the number of method parameters"
-            );
+        if (arguments != null) {
+            var offset = Modifier.isStatic(method.getModifiers()) ? 1 : 0;
+            if (arguments.length + offset != method.getParameterCount()) {
+                throw new IllegalArgumentException(
+                        "The length of the array of arguments does not match the number of method parameters"
+                );
+            }
         }
         last = method.getReturnType();
         accesses.add(new MethodAccess(method, arguments));

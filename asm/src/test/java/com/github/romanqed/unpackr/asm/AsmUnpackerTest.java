@@ -3,6 +3,7 @@ package com.github.romanqed.unpackr.asm;
 import com.github.romanqed.unpackr.MemberAccess;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -158,6 +159,30 @@ public final class AsmUnpackerTest {
         assertThrows(IllegalStateException.class, () -> unpacker.unpack(CtxPlain.class, target, accesses));
     }
 
+    @Test
+    public void testTypeWideningWithPseudoStaticMethods() throws Throwable {
+        var access1 = MemberAccess.of()
+                .of(TypeWideningCtx.class)
+                .of(TypeWideningCtx.class.getMethod("processObject", TypeWideningCtx.class, Object.class), List.of("a"))
+                .build();
+
+        var access2 = MemberAccess.of()
+                .of(TypeWideningCtx.class)
+                .of(TypeWideningCtx.class.getMethod("processList", TypeWideningCtx.class, List.class), List.of("a"))
+                .build();
+
+        var target = TypeWideningHandler.class.getMethod("handle", TypeWideningCtx.class, Object.class, List.class);
+
+        var unpacker = new AsmUnpacker();
+        var caller = unpacker.unpack(TypeWideningCtx.class, target, null, access1, access2);
+
+        var ctx = new TypeWideningCtx();
+
+        var result = caller.call(new TypeWideningHandler(), ctx);
+
+        assertEquals("ok", result);
+    }
+
     public interface Ctx {
         static C getC(Ctx ctx) {
             return ((CtxImpl) ctx).getC();
@@ -178,6 +203,30 @@ public final class AsmUnpackerTest {
 
     public interface C {
         String getStrVal();
+    }
+
+    @SuppressWarnings("rawtypes")
+    public static final class TypeWideningCtx {
+        public static Object processObject(TypeWideningCtx self, Object arg) {
+            return arg;
+        }
+
+        public static List processList(TypeWideningCtx self, List arg) {
+            return arg;
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    public static final class TypeWideningHandler {
+
+        public String handle(TypeWideningCtx ctx, Object a, List b) {
+            assertNotNull(ctx);
+            assertInstanceOf(Object.class, a);
+            assertInstanceOf(List.class, b);
+            assertEquals(List.of("a"), a);
+            assertEquals(List.of("a"), b);
+            return "ok";
+        }
     }
 
     public static final class NullHandler {
