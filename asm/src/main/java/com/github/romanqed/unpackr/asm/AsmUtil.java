@@ -201,8 +201,9 @@ final class AsmUtil {
             return;
         }
         var types = method.getParameterTypes();
-        for (var i = 0; i < types.length; ++i) {
-            pusher.push(visitor, types[i], arguments[i]);
+        var offset = Modifier.isStatic(method.getModifiers()) ? 1 : 0;
+        for (var i = 0; i < arguments.length; ++i) {
+            pusher.push(visitor, types[i + offset], arguments[i]);
         }
         invoke(visitor, method);
     }
