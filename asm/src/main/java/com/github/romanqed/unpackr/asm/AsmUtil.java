@@ -8,7 +8,7 @@ import org.objectweb.asm.Type;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Consumer;
 
 final class AsmUtil {
     static final String OBJECT_NAME = "java/lang/Object";
@@ -34,34 +34,37 @@ final class AsmUtil {
             Long.class, long.class,
             Double.class, double.class
     );
-    static final Set<Class<?>> TYPES = Set.of(
-            // Boolean
-            Boolean.class,
-            // Char
-            Character.class,
-            // String
-            String.class,
-            // Int-types
-            Byte.class,
-            Short.class,
-            Integer.class,
-            Long.class,
-            // Float-types
-            Float.class,
-            Double.class
-    );
 
     static void createEmptyConstructor(ClassWriter writer) {
-        var init = writer.visitMethod(Opcodes.ACC_PUBLIC,
+        var init = writer.visitMethod(
+                Opcodes.ACC_PUBLIC,
                 INIT,
                 EMPTY_DESCRIPTOR,
                 null,
-                null);
+                null
+        );
         init.visitCode();
         init.visitVarInsn(Opcodes.ALOAD, 0);
         init.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT_NAME, INIT, EMPTY_DESCRIPTOR, false);
         init.visitInsn(Opcodes.RETURN);
         init.visitMaxs(1, 1);
+        init.visitEnd();
+    }
+
+    static void createConstructor(ClassWriter writer, String descriptor, Consumer<MethodVisitor> consumer) {
+        var init = writer.visitMethod(
+                Opcodes.ACC_PUBLIC,
+                INIT,
+                descriptor,
+                null,
+                null
+        );
+        init.visitCode();
+        init.visitVarInsn(Opcodes.ALOAD, 0);
+        init.visitMethodInsn(Opcodes.INVOKESPECIAL, OBJECT_NAME, INIT, EMPTY_DESCRIPTOR, false);
+        consumer.accept(init);
+        init.visitInsn(Opcodes.RETURN);
+        init.visitMaxs(0, 0);
         init.visitEnd();
     }
 
@@ -93,14 +96,6 @@ final class AsmUtil {
                 "valueOf",
                 descriptor,
                 false);
-    }
-
-    static void checkType(Class<?> type) {
-        if (!type.isPrimitive() && !TYPES.contains(type)) {
-            throw new IllegalArgumentException(
-                    "Asm unpacker supports only primitive and string method arguments: " + type
-            );
-        }
     }
 
     static void pushInt(MethodVisitor visitor, int value) {
@@ -160,13 +155,12 @@ final class AsmUtil {
     }
 
     static void push(MethodVisitor visitor, Class<?> type, Object value) {
-        // Check for null ref
-        if (value == null) {
-            visitor.visitInsn(Opcodes.ACONST_NULL);
+        var valueType = value.getClass();
+        // Push Class
+        if (valueType == Class.class) {
+            visitor.visitLdcInsn(Type.getType((Class<?>) value));
             return;
         }
-        var valueType = value.getClass();
-        checkType(valueType);
         // Push String
         if (valueType == String.class) {
             visitor.visitLdcInsn(value);
@@ -201,14 +195,14 @@ final class AsmUtil {
         );
     }
 
-    static void invoke(MethodVisitor visitor, Method method, Object[] arguments) {
+    static void invoke(MethodVisitor visitor, ConstantPusher pusher, Method method, Object[] arguments) {
         if (arguments == null || arguments.length == 0) {
             invoke(visitor, method);
             return;
         }
         var types = method.getParameterTypes();
         for (var i = 0; i < types.length; ++i) {
-            push(visitor, types[i], arguments[i]);
+            pusher.push(visitor, types[i], arguments[i]);
         }
         invoke(visitor, method);
     }

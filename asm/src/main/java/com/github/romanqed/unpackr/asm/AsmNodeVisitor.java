@@ -1,5 +1,6 @@
 package com.github.romanqed.unpackr.asm;
 
+import com.github.romanqed.asm.sorter.LocalVariablesSorter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -9,10 +10,12 @@ import java.util.function.Consumer;
 @SuppressWarnings("unchecked")
 final class AsmNodeVisitor implements NodeVisitor {
     final LocalVariablesSorter visitor;
+    final ConstantPusher pusher;
     final Consumer<MethodVisitor>[] loaders;
 
-    AsmNodeVisitor(LocalVariablesSorter visitor, int size) {
+    AsmNodeVisitor(LocalVariablesSorter visitor, ConstantPusher pusher, int size) {
         this.visitor = visitor;
+        this.pusher = pusher;
         this.loaders = new Consumer[size];
     }
 
@@ -50,7 +53,7 @@ final class AsmNodeVisitor implements NodeVisitor {
             // Fire access delayed chain
             node.parent.accessor.accept(visitor);
             // Invoke method right now
-            AsmUtil.invoke(visitor, node.method, node.arguments);
+            AsmUtil.invoke(visitor, pusher, node.method, node.arguments);
             // Declare new variable
             var type = node.method.getReturnType();
             var index = visitor.newLocal(Type.getType(type));
@@ -63,7 +66,7 @@ final class AsmNodeVisitor implements NodeVisitor {
         // Add method call to access chain
         node.accessor = v -> {
             node.parent.accessor.accept(v);
-            AsmUtil.invoke(v, node.method, node.arguments);
+            AsmUtil.invoke(v, pusher, node.method, node.arguments);
         };
         // Store access chain
         store(node);

@@ -1,5 +1,7 @@
 package com.github.romanqed.unpackr.asm;
 
+import com.github.romanqed.asm.sorter.LocalVariablesSorter;
+import com.github.romanqed.asm.sorter.LocalVariablesWriter;
 import com.github.romanqed.jeflect.loader.DefineClassLoader;
 import com.github.romanqed.jeflect.loader.DefineLoader;
 import com.github.romanqed.jeflect.loader.DefineObjectFactory;
@@ -151,6 +153,7 @@ public final class AsmUnpacker implements Unpacker {
     }
 
     private static void generateMethod(LocalVariablesSorter visitor,
+                                       ConstantPusher pusher,
                                        Class<?> packed,
                                        Method target,
                                        MemberAccess[][] accesses) {
@@ -167,7 +170,7 @@ public final class AsmUnpacker implements Unpacker {
         var loader = buildRootLoader(visitor, packed, count[0] + children.size());
         node.accessor = loader;
         // Generate cache vars and prepare arg loaders
-        var nodeVisitor = new AsmNodeVisitor(visitor, accesses.length);
+        var nodeVisitor = new AsmNodeVisitor(visitor, pusher, accesses.length);
         node.accept(nodeVisitor);
         // {
         visitor.visitCode();
@@ -197,7 +200,11 @@ public final class AsmUnpacker implements Unpacker {
         visitor.visitEnd();
     }
 
-    private static byte[] generateUnpacker(String name, Class<?> packed, Method target, MemberAccess[][] accesses) {
+    private static byte[] generateUnpacker(String name,
+                                           ConstantPusher pusher,
+                                           Class<?> packed,
+                                           Method target,
+                                           MemberAccess[][] accesses) {
         var writer = new LocalVariablesWriter(ClassWriter.COMPUTE_MAXS);
         writer.visit(
                 Opcodes.V11,
@@ -207,15 +214,15 @@ public final class AsmUnpacker implements Unpacker {
                 AsmUtil.OBJECT_NAME,
                 new String[]{CALLER}
         );
-        AsmUtil.createEmptyConstructor(writer);
+        pusher.declare(writer);
         var visitor = writer.visitMethodWithLocals(
-                Opcodes.ACC_PUBLIC,
+                Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL,
                 METHOD_NAME,
                 METHOD_DESCRIPTOR,
                 null,
                 new String[]{THROWABLE}
         );
-        generateMethod(visitor, packed, target, accesses);
+        generateMethod(visitor, pusher, packed, target, accesses);
         writer.visitEnd();
         return writer.toByteArray();
     }
@@ -235,6 +242,21 @@ public final class AsmUnpacker implements Unpacker {
             );
         }
         var name = "Unpacker" + packed.hashCode() + ":" + target.hashCode();
-        return factory.create(name, () -> generateUnpacker(name, packed, target, accesses));
+        var pusher = ConstantPusher.of(name, accesses);
+        var array = pusher.buildArray();
+        return factory.create(
+                name,
+                () -> generateUnpacker(name, pusher, packed, target, accesses),
+                clazz -> {
+                    if (array == null) {
+                        var ctor = clazz.getConstructor();
+                        ctor.setAccessible(true);
+                        return (Caller) ctor.newInstance((Object[]) null);
+                    }
+                    var ctor = clazz.getConstructor(Object[].class);
+                    ctor.setAccessible(true);
+                    return (Caller) ctor.newInstance(new Object[]{array});
+                }
+        );
     }
 }
