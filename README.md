@@ -88,15 +88,13 @@ You can create an unpacker using the ASM implementation like this:
 
 ```java
 var unpacker = new AsmUnpacker(new DefineClassLoader());
-var first = MemberAccess.of()
-        .of(Ctx.class)
+var first = MemberAccess.of(Ctx.class)
         .of(Ctx.class.getMethod("getRq"))
         .of(Rq.class.getMethod("getRqProps"))
         .of(Map.class.getMethod("get", Object.class), "rqProp")
         .build();
 
-var second = MemberAccess.of()
-        .of(Ctx.class)
+var second = MemberAccess.of(Ctx.class)
         .of(Ctx.class.getMethod("getRp"))
         .of(Rp.class.getMethod("getRpProps"))
         .of(Map.class.getMethod("get", Object.class), "rpProp")
