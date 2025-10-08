@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public final class AsmUnpackerTest {
 
@@ -96,6 +95,99 @@ public final class AsmUnpackerTest {
         );
         var func = unpacker.unpack(Ctx.class, target, null, aProp1, aProp2, bProp1, bProp2, cStrVal);
         assertEquals("handled", func.call(new Handler(), new CtxImpl()));
+    }
+
+    @Test
+    public void testRuntimeObjectConstant() throws Throwable {
+        var custom = new Object() {
+            @Override
+            public String toString() { return "runtimeConst"; }
+        };
+        var access = MemberAccess.of()
+                .of(CtxPlain.class)
+                .of(CtxPlain.class.getMethod("echo", Object.class), custom)
+                .build();
+
+        var unpacker = new AsmUnpacker();
+        var target = ConstHandler.class.getMethod("handle", Object.class);
+        var func = unpacker.unpack(CtxPlain.class, target, access);
+        assertEquals("runtimeConst", func.call(new ConstHandler(), new CtxPlain()));
+    }
+
+    @Test
+    public void testClassConstant() throws Throwable {
+        var access = MemberAccess.of()
+                .of(CtxPlain.class)
+                .of(CtxPlain.class.getMethod("echoClass", Class.class), String.class)
+                .build();
+
+        var unpacker = new AsmUnpacker();
+        var target = ClassHandler.class.getMethod("handle", Object.class);
+        var func = unpacker.unpack(CtxPlain.class, target, access);
+        assertEquals(String.class, func.call(new ClassHandler(), new CtxPlain()));
+    }
+
+    @Test
+    public void testNullConstant() throws Throwable {
+        var access = MemberAccess.of()
+                .of(CtxPlain.class)
+                .of(CtxPlain.class.getMethod("echoNull", Object.class), (Object) null)
+                .build();
+
+        var unpacker = new AsmUnpacker();
+        var target = NullHandler.class.getMethod("handle", Object.class);
+        var func = unpacker.unpack(CtxPlain.class, target, access);
+        assertEquals("null-ok", func.call(new NullHandler(), new CtxPlain()));
+    }
+
+    @Test
+    public void testTooManyConstantsThrows() throws Throwable {
+        var accesses = new MemberAccess[1][Byte.MAX_VALUE + 1];
+        for (int i = 0; i < accesses[0].length; i++) {
+            accesses[0][i] = MemberAccess.of()
+                    .of(CtxPlain.class)
+                    .of(CtxPlain.class.getMethod("echo", Object.class), new Object())
+                    .build()[0];
+        }
+
+        var unpacker = new AsmUnpacker();
+        var target = ConstHandler.class.getMethod("handle", Object.class);
+
+        assertThrows(IllegalStateException.class, () -> unpacker.unpack(CtxPlain.class, target, accesses));
+    }
+
+    public static final class NullHandler {
+        public Object handle(Object value) {
+            assertNull(value);
+            return "null-ok";
+        }
+    }
+
+    public static final class ClassHandler {
+        public Object handle(Object value) {
+            return value;
+        }
+    }
+
+    public static final class ConstHandler {
+        public Object handle(Object value) {
+            assertNotNull(value);
+            return value.toString();
+        }
+    }
+
+    public static final class CtxPlain {
+        public Object echo(Object arg) {
+            return arg;
+        }
+
+        public Class<?> echoClass(Class<?> cls) {
+            return cls;
+        }
+
+        public Object echoNull(Object ignored) {
+            return null;
+        }
     }
 
     public interface Ctx {
