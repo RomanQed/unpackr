@@ -62,7 +62,19 @@ public final class ReflectUnpacker implements Unpacker {
     }
 
     /**
-     * TODO
+     * Constructs a new {@code ReflectUnpacker} using a default
+     * {@link NoopReflectCloner}, which does not perform any deep cloning
+     * of reflective members.
+     * <p>
+     * This is a convenient default suitable for most scenarios where
+     * reflective access can safely modify accessibility flags directly
+     * on the original members.
+     * <p>
+     * Example:
+     * <pre>{@code
+     * var unpacker = new ReflectUnpacker();
+     * }</pre>
+     * This instance will use reflection directly without copying members.
      */
     public ReflectUnpacker() {
         this.cloner = new NoopReflectCloner();
