@@ -29,6 +29,31 @@ public interface MemberAccess {
     }
 
     /**
+     * Creates a new {@link MemberAccessBuilder} initialized with the specified root type.
+     * <p>
+     * This method serves as a convenient entry point for building access chains
+     * that start from a known context class. The provided {@code type} defines
+     * the initial type of the object from which subsequent field or method
+     * accesses will be resolved.
+     * </p>
+     *
+     * <h3>Example</h3>
+     * <pre>{@code
+     * var access = MemberAccess.of(Ctx.class)
+     *     .of(Ctx.class.getMethod("getA"))
+     *     .of(A.class.getMethod("getProps"))
+     *     .build();
+     * }</pre>
+     *
+     * @param type the root type of the access chain
+     * @return a new {@link MemberAccessBuilder} initialized with the given root type
+     * @throws NullPointerException if {@code type} is {@code null}
+     */
+    static MemberAccessBuilder of(Class<?> type) {
+        return new MemberAccessBuilder().of(type);
+    }
+
+    /**
      * Returns the underlying reflective {@link Member}.
      *
      * @return the member
