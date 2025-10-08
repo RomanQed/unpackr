@@ -27,7 +27,7 @@ To install it, you will need:
 
 ```Groovy
 dependencies {
-    implementation group: 'com.github.romanqed', name: 'unpackr', version: '2.0.0'
+    implementation group: 'com.github.romanqed', name: 'unpackr', version: '2.1.0'
     implementation group: 'com.github.romanqed', name: 'unpackr-asm', version: '2.0.1'
     // OR
     implementation group: 'com.github.romanqed', name: 'unpackr-reflect', version: '2.0.1'
@@ -41,7 +41,7 @@ dependencies {
     <dependency>
         <groupId>com.github.romanqed</groupId>
         <artifactId>unpackr</artifactId>
-        <version>2.0.0</version>
+        <version>2.1.0</version>
     </dependency>
     <dependency>
         <groupId>com.github.romanqed</groupId>
