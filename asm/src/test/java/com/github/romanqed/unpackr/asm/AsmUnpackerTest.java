@@ -101,7 +101,9 @@ public final class AsmUnpackerTest {
     public void testRuntimeObjectConstant() throws Throwable {
         var custom = new Object() {
             @Override
-            public String toString() { return "runtimeConst"; }
+            public String toString() {
+                return "runtimeConst";
+            }
         };
         var access = MemberAccess.of()
                 .of(CtxPlain.class)
@@ -156,6 +158,28 @@ public final class AsmUnpackerTest {
         assertThrows(IllegalStateException.class, () -> unpacker.unpack(CtxPlain.class, target, accesses));
     }
 
+    public interface Ctx {
+        static C getC(Ctx ctx) {
+            return ((CtxImpl) ctx).getC();
+        }
+
+        A getA();
+
+        B getB();
+    }
+
+    public interface A {
+        Map<String, String> getAProps();
+    }
+
+    public interface B {
+        Map<String, String> getBProps();
+    }
+
+    public interface C {
+        String getStrVal();
+    }
+
     public static final class NullHandler {
         public Object handle(Object value) {
             assertNull(value);
@@ -188,28 +212,6 @@ public final class AsmUnpackerTest {
         public Object echoNull(Object ignored) {
             return null;
         }
-    }
-
-    public interface Ctx {
-        static C getC(Ctx ctx) {
-            return ((CtxImpl) ctx).getC();
-        }
-
-        A getA();
-
-        B getB();
-    }
-
-    public interface A {
-        Map<String, String> getAProps();
-    }
-
-    public interface B {
-        Map<String, String> getBProps();
-    }
-
-    public interface C {
-        String getStrVal();
     }
 
     public static final class Handler {
