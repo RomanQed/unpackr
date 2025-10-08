@@ -122,7 +122,7 @@ public final class AsmUnpacker implements Unpacker {
         var type = target.getReturnType();
         if (type == void.class) {
             visitor.visitInsn(Opcodes.ACONST_NULL);
-        } else {
+        } else if (type.isPrimitive()) {
             AsmUtil.packPrimitive(visitor, type);
         }
     }
@@ -181,17 +181,16 @@ public final class AsmUnpacker implements Unpacker {
         }
         // Invoke loaders
         var loaders = nodeVisitor.loaders;
-        var types = target.getParameterTypes();
+        var types = nodeVisitor.types;
+        var argTypes = target.getParameterTypes();
         for (var i = 0; i < loaders.length; ++i) {
-            var argType = types[i];
+            var argType = argTypes[i];
             if (argType == packed) {
                 loader.accept(visitor);
                 continue;
             }
             loaders[i].accept(visitor);
-            if (!argType.isPrimitive()) {
-                visitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(argType));
-            }
+            AsmUtil.castReference(visitor, types[i], argType);
         }
         invokeTargetMethod(visitor, target);
         visitor.visitInsn(Opcodes.ARETURN);

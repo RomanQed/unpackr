@@ -20,6 +20,10 @@ public final class AsmUnpackerTest {
         return "handled";
     }
 
+    public static int unboxedHandle(int v, Integer b) {
+        return v + b;
+    }
+
     @Test
     public void testUnpackStatic() throws Throwable {
         var aProp1 = MemberAccess.of()
@@ -183,6 +187,26 @@ public final class AsmUnpackerTest {
         assertEquals("ok", result);
     }
 
+    @Test
+    public void testBoxing() throws Throwable {
+        var accessV = MemberAccess
+                .of(BoxCtx.class)
+                .of(BoxCtx.class.getMethod("getV"))
+                .build();
+        var accessI = MemberAccess
+                .of(BoxCtx.class)
+                .of(BoxCtx.class.getMethod("getI"))
+                .build();
+        var unpacker = new AsmUnpacker();
+        var caller = unpacker.unpack(
+                BoxCtx.class,
+                AsmUnpackerTest.class.getMethod("unboxedHandle", int.class, Integer.class),
+                accessV,
+                accessI
+        );
+        assertEquals(6, caller.call(null, new BoxCtx()));
+    }
+
     public interface Ctx {
         static C getC(Ctx ctx) {
             return ((CtxImpl) ctx).getC();
@@ -203,6 +227,16 @@ public final class AsmUnpackerTest {
 
     public interface C {
         String getStrVal();
+    }
+
+    public static final class BoxCtx {
+        public Object getV() {
+            return 5;
+        }
+
+        public int getI() {
+            return 1;
+        }
     }
 
     @SuppressWarnings("rawtypes")

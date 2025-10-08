@@ -7,22 +7,25 @@ import org.objectweb.asm.Type;
 
 import java.util.function.Consumer;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 final class AsmNodeVisitor implements NodeVisitor {
     final LocalVariablesSorter visitor;
     final ConstantPusher pusher;
     final Consumer<MethodVisitor>[] loaders;
+    final Class[] types;
 
     AsmNodeVisitor(LocalVariablesSorter visitor, ConstantPusher pusher, int size) {
         this.visitor = visitor;
         this.pusher = pusher;
         this.loaders = new Consumer[size];
+        this.types = new Class[size];
     }
 
-    private void store(Node node) {
+    private void store(Node node, Class type) {
         if (node.indexes != null) {
             for (var index : node.indexes) {
                 loaders[index] = node.accessor;
+                types[index] = type;
             }
         }
     }
@@ -32,7 +35,8 @@ final class AsmNodeVisitor implements NodeVisitor {
         // Add field load to access chain
         var field = node.field;
         var owner = Type.getInternalName(field.getDeclaringClass());
-        var descriptor = Type.getDescriptor(field.getType());
+        var type = field.getType();
+        var descriptor = Type.getDescriptor(type);
         node.accessor = v -> {
             node.parent.accessor.accept(v);
             visitor.visitFieldInsn(
@@ -43,7 +47,7 @@ final class AsmNodeVisitor implements NodeVisitor {
             );
         };
         // Store access chain
-        store(node);
+        store(node, type);
     }
 
     @Override
@@ -69,6 +73,6 @@ final class AsmNodeVisitor implements NodeVisitor {
             AsmUtil.invoke(v, pusher, node.method, node.arguments);
         };
         // Store access chain
-        store(node);
+        store(node, node.method.getReturnType());
     }
 }

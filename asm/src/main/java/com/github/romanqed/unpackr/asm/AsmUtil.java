@@ -24,6 +24,16 @@ final class AsmUtil {
             long.class, Long.class,
             double.class, Double.class
     );
+    static final Map<Class<?>, String> PRIMITIVE_METHODS = Map.of(
+            boolean.class, "booleanValue",
+            char.class, "charValue",
+            byte.class, "byteValue",
+            short.class, "shortValue",
+            int.class, "intValue",
+            float.class, "floatValue",
+            long.class, "longValue",
+            double.class, "doubleValue"
+    );
     static final Map<Class<?>, Class<?>> WRAPPERS = Map.of(
             Boolean.class, boolean.class,
             Character.class, char.class,
@@ -85,10 +95,35 @@ final class AsmUtil {
         );
     }
 
-    static void packPrimitive(MethodVisitor visitor, Class<?> primitive) {
-        if (!primitive.isPrimitive()) {
+    static void castReference(MethodVisitor visitor, Class<?> from, Class<?> to) {
+        if (from == to || to.isAssignableFrom(from)) {
             return;
         }
+        if (!from.isPrimitive() && !to.isPrimitive()) {
+            visitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(to));
+            return;
+        }
+        if (from.isPrimitive()) {
+            packPrimitive(visitor, from);
+        } else {
+            unwrapPrimitive(visitor, to);
+        }
+    }
+
+    static void unwrapPrimitive(MethodVisitor visitor, Class<?> primitive) {
+        var wrap = Type.getInternalName(PRIMITIVES.get(primitive));
+        visitor.visitTypeInsn(Opcodes.CHECKCAST, wrap);
+        var method = PRIMITIVE_METHODS.get(primitive);
+        visitor.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                wrap,
+                method,
+                "()" + Type.getDescriptor(primitive),
+                false
+        );
+    }
+
+    static void packPrimitive(MethodVisitor visitor, Class<?> primitive) {
         var wrap = Type.getType(PRIMITIVES.get(primitive));
         var descriptor = Type.getMethodDescriptor(wrap, Type.getType(primitive));
         visitor.visitMethodInsn(Opcodes.INVOKESTATIC,
