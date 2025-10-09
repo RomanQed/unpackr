@@ -244,6 +244,12 @@ public final class AsmUnpacker implements Unpacker {
                 null,
                 new String[]{THROWABLE}
         );
+        visitor.visitCode();
+        // Prepare method owner ref
+        if (!Modifier.isStatic(target.getModifiers())) {
+            visitor.visitVarInsn(Opcodes.ALOAD, 1);
+            visitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(target.getDeclaringClass()));
+        }
         invokeTargetMethod(visitor, target);
         visitor.visitInsn(Opcodes.ARETURN);
         visitor.visitMaxs(0, 0);
