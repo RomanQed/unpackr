@@ -226,21 +226,47 @@ public final class AsmUnpacker implements Unpacker {
         return writer.toByteArray();
     }
 
+    private static byte[] generateDirectCaller(String name, Method target) {
+        var writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        writer.visit(
+                Opcodes.V11,
+                Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL,
+                name,
+                null,
+                AsmUtil.OBJECT_NAME,
+                new String[]{CALLER}
+        );
+        AsmUtil.createEmptyConstructor(writer);
+        var visitor = writer.visitMethod(
+                Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL,
+                METHOD_NAME,
+                METHOD_DESCRIPTOR,
+                null,
+                new String[]{THROWABLE}
+        );
+        invokeTargetMethod(visitor, target);
+        visitor.visitInsn(Opcodes.ARETURN);
+        visitor.visitMaxs(0, 0);
+        visitor.visitEnd();
+        writer.visitEnd();
+        return writer.toByteArray();
+    }
+
     @Override
     public Caller unpack(Class<?> packed, Method target, MemberAccess[]... accesses) {
         if (!Modifier.isPublic(target.getModifiers())) {
             throw new IllegalArgumentException("Target method must be public");
         }
         var count = target.getParameterCount();
-        if (count == 0) {
-            throw new IllegalArgumentException("Target method has no parameters");
-        }
         if (count != accesses.length) {
             throw new IllegalArgumentException(
                     "The size of the accesses array does not match the parameters of the target method"
             );
         }
         var name = "Unpacker" + packed.hashCode() + ":" + target.hashCode();
+        if (count == 0) {
+            return factory.create(name, () -> generateDirectCaller(name, target));
+        }
         var pusher = ConstantPusher.of(name, accesses);
         var array = pusher.buildArray();
         return factory.create(

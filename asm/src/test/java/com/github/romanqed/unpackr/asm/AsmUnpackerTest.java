@@ -207,6 +207,17 @@ public final class AsmUnpackerTest {
         assertEquals(6, caller.call(null, new BoxCtx()));
     }
 
+    public static int noArgHandler() {
+        return 12;
+    }
+
+    @Test
+    public void testNoArgs() throws Throwable {
+        var unpacker = new AsmUnpacker();
+        var caller = unpacker.unpack(Void.class, AsmUnpackerTest.class.getMethod("noArgHandler"));
+        assertEquals(12, caller.call(null, null));
+    }
+
     public interface Ctx {
         static C getC(Ctx ctx) {
             return ((CtxImpl) ctx).getC();
