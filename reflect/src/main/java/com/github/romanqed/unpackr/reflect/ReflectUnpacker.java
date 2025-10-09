@@ -125,6 +125,17 @@ public final class ReflectUnpacker implements Unpacker {
 
     @Override
     public Caller unpack(Class<?> packed, Method target, MemberAccess[]... accesses) {
+        var count = target.getParameterCount();
+        if (count != accesses.length) {
+            throw new IllegalArgumentException(
+                    "The size of the accesses array does not match the parameters of the target method"
+            );
+        }
+        if (count == 0) {
+            var cloned = cloner.clone(target);
+            cloned.setAccessible(true);
+            return new DirectMethodCaller(cloned);
+        }
         var accessors = process(accesses, target, packed);
         var cloned = cloner.clone(target);
         cloned.setAccessible(true);
